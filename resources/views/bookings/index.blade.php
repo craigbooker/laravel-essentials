@@ -39,6 +39,11 @@
         <a href="{{ action('BookingController@edit', ['booking' => $booking->id]) }}" alt="Edit" title="Edit">
           Edit
         </a>
+        <form action="{{ action('BookingController@destroy', ['booking' => $booking->id]) }}" method="POST">
+          @method('DELETE')
+          @csrf
+          <button type="submit" class="btn btn-link" title="Delete" value="DELETE">Delete</button>
+        </form>
       </td>
     </tr>
     @empty
