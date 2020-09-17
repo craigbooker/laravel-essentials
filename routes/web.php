@@ -23,6 +23,6 @@ Route::get('/test', function () {
     return "Goodbye";
 });
 
-Route::get('/rooms/{roomType?}', 'ShowRoomsController');
+Route::get('/rooms/{roomType?}', 'ShowRoomsController')->name('rooms');
 
 Route::resource('bookings', 'BookingController');
