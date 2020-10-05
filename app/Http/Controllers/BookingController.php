@@ -44,8 +44,10 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $booking = Booking::create($request->input());
-        $booking->users()->attach($request->input('user_id'));
-        //$user = $booking->users()->create(['name' => 'test']);
+        DB::table('bookings_users')->insert([
+            'booking_id' => $booking->id,
+            'user_id' => $request->input('user_id'),
+        ]);
         return redirect()->action('BookingController@index');
     }
 
@@ -72,9 +74,9 @@ class BookingController extends Controller
         $rooms = DB::table('rooms')->get()->pluck('number', 'id');
         $bookingsUser = DB::table('bookings_users')->where('booking_id', $booking->id)->first();
         return view('bookings.edit')
+            ->with('bookingsUser', $bookingsUser)
             ->with('users', $users)
             ->with('rooms', $rooms)
-            ->with('bookingsUser', $bookingsUser)
             ->with('booking', $booking);
     }
 
@@ -87,10 +89,23 @@ class BookingController extends Controller
      */
     public function update(Request $request, Booking $booking)
     {
-
-        $booking->fill($request->input());
+        (\App\Jobs\ProcessBookingJob::dispatch($booking));
+        $validatedData = $request->validate([
+            'start' => 'required|date',
+            'end' => 'required|date',
+            'room_id' => 'required|exists:rooms,id',
+            'user_id' => 'required|exists:users,id',
+            'is_paid' => 'nullable',
+            'notes' => 'present',
+            'is_reservation' => 'required',
+        ]);
+        $booking->fill($validatedData);
         $booking->save();
-        $booking->users()->sync([$request->input('user_id')]);
+        DB::table('bookings_users')
+            ->where('booking_id', $booking->id)
+            ->update([
+                'user_id' => $validatedData['user_id'],
+            ]);
         return redirect()->action('BookingController@index');
     }
 

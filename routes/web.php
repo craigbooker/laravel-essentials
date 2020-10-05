@@ -11,18 +11,24 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+
+
+Route::group(['middleware' => ['web']], function () {
+    Route::get('/', function () {
+        return view('welcome');
+    });
+
+    Auth::routes();
+
+    Route::get('/home', 'HomeController@index')->name('home');
+
+    Route::get('/test', function () {
+        return "Goodbye";
+    })->middleware('\App\Http\Middleware\CheckQueryParam');
+
+    Route::get('/rooms/{roomType?}', 'ShowRoomsController')->name('rooms');
+
+    Route::resource('bookings', 'BookingController');
+
+    Route::resource('room_types', 'RoomTypeController');
 });
-
-Auth::routes();
-
-Route::get('/home', 'HomeController@index')->name('home');
-
-Route::get('/test', function () {
-    return "Goodbye";
-});
-
-Route::get('/rooms/{roomType?}', 'ShowRoomsController')->name('rooms');
-
-Route::resource('bookings', 'BookingController');
